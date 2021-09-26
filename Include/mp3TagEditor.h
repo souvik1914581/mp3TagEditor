@@ -1,6 +1,7 @@
 #ifndef MP3TAGEDITOR_HPP
 #define MP3TAGEDITOR_HPP
 
+/*MP3 Tag Editor Classes*/
 #include <iostream>
 #include <fstream>
 typedef enum id3Version{
@@ -13,6 +14,7 @@ typedef enum id3Version{
 
 typedef class metaData{
 	public:
+		id3Version m_id3Version;
 		std::string title;
 		std::string artist;
 		std::string album;
@@ -30,6 +32,7 @@ typedef class mp3File{
 		metaData *m_metaData;
 	public:
 		mp3File(std::string fileName);
+		~mp3File();
 		void openFile();
 		int parseMetaData();
 		metaData* getMetaData();

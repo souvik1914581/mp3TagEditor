@@ -15,17 +15,11 @@ int main(int argc, char** argv) {
 	std::string fileName = std::string(*(argv + 2));
 	
 	std::cout<<"Mode : "<<userOption <<"\nFileName:"<<fileName<<std::endl;
+	mp3File m_mp3File(fileName);
 	
-	/*is valid mp3 file?*/
 	
 	
-	/*open the file*/
-	std::fstream fin{fileName};
-	if(!fin)
-	{
-		std::cout<<"Unable to open file "<<fileName<<std::endl;
-		exit(EXIT_FAILURE);
-	}
+	
 	
 	
 	

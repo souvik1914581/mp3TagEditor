@@ -18,9 +18,9 @@ typedef struct id3v1Data{
 	char album[30];
 	char year[4];
 	char comment[30];
-	char zeroByte;
-	char track;
-	char genre;
+	char zeroByte[1];
+	char track[1];
+	char genre[1];
 }id3v1Data;
 
 typedef class metaData{
@@ -53,7 +53,10 @@ typedef class mp3File{
 		int getFileSize();
 		int parseMetaData();
 		metaData* getMetaData();
-		void parseid3v1Data();		
+		void parseid3v1Data();
+		void displayMetaData();
+		void displayid3v1Data();
+		void displayid3v2Data();		
 }mp3File;
 
 #endif

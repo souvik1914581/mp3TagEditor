@@ -2,8 +2,13 @@
 #include "mp3TagEditor.h"
 	mp3File :: mp3File(std::string fileName)
 	{
-		std :: string identifierString = "TAG";
+		/*initialise members*/
+		m_id3v1Data = NULL;
+		m_metaData = NULL;
+		b_hasid3v1Tag = false;
+		b_hasid3v2Tag = false;
 		
+	
 		std::string debugMsg;
 		if(fileName.empty())
 		{
@@ -26,33 +31,21 @@
 		/*get File Size*/
 		m_fileSize = getFileSize();
 		
-		debugMsg = "File Size";
-		debugPrint1(debugMsg,m_fileSize);
-		
-		/*goto 128 bytes from end of file and read 3 bytes*/
-		m_fileStream.seekg(m_fileSize - 128,std::ios::beg);
-		
-		debugMsg = "Current pos";
-		debugPrint1(debugMsg,m_fileStream.tellg());
-		
-		
-		char *buff = new char[3];
-		m_fileStream.read(buff,3);
-		
-		debugMsg = "Bytes read = " + std::string(buff);
-		debugPrint(debugMsg);
-		
-		if(identifierString == std::string(buff))
+		if(FAILURE == parseMetaData())
 		{
-			b_hasid3v1Tag = true;
-			parseid3v1Data();
+			debugMsg = "Failed to parse Meta Data";
+			fatalErrorPrint(debugMsg);	
 		}
+		
+		/*display MetaData*/
+		displayMetaData();
 		
 	}
 	
 	mp3File :: ~mp3File()
 	{
 		delete m_metaData;
+		delete m_id3v1Data;
 		m_fileStream.close();
 		std::string debugMsg = "Dest invoked";
 		debugPrint(debugMsg);
@@ -106,11 +99,69 @@
 		debugMsg = m_id3v1Data->album;
 		debugPrint(debugMsg);
 		
+		displayMetaData();
+		
 	}
+	void mp3File :: displayMetaData()
+	{
+		if(b_hasid3v1Tag)
+		{
+			displayid3v1Data();
+		}
+		
+		if(b_hasid3v2Tag)
+		{
+			displayid3v2Data();
+		}
+	}
+	
+	void mp3File :: displayid3v1Data()
+	{
+		std::string debugMsg;
+		
+		debugMsg = "\nTitle: " + std::string(m_id3v1Data->title)+ "\n";
+		debugMsg += "Artist: " + std::string(m_id3v1Data->artist)+ "\n";
+		debugMsg += "Album: " + std::string(m_id3v1Data->album)+ "\n";
+		debugMsg += "Year: " + std::string(m_id3v1Data->year)+ "\n";
+		debugMsg += "Comment: " + std::string(m_id3v1Data->comment)+ "\n";
+		debugMsg += "ZeroByte: " + std::string(m_id3v1Data->zeroByte)+ "\n";
+		debugMsg += "Track: " + std::string(m_id3v1Data->track)+ "\n";
+		debugMsg += "Genre: " + std::string(m_id3v1Data->genre)+ "\n";
+		debugPrint(debugMsg);
+	}
+	
+	void mp3File :: displayid3v2Data()
+	{
+		
+	}	
 	
 	int mp3File :: parseMetaData()
 	{
-		return SUCCESS;
+		int retVal{FAILURE};
+		std :: string identifierString = "TAG";
+		std :: string debugMsg = "File Size";
+		debugPrint1(debugMsg,m_fileSize);
+		
+		/*goto 128 bytes from end of file and read 3 bytes*/
+		m_fileStream.seekg(m_fileSize - 128,std::ios::beg);
+		
+		debugMsg = "Current pos";
+		debugPrint1(debugMsg,m_fileStream.tellg());
+		
+		
+		char *buff = new char[3];
+		m_fileStream.read(buff,3);
+		
+		debugMsg = "Bytes read = " + std::string(buff);
+		debugPrint(debugMsg);
+		
+		if(identifierString == std::string(buff))
+		{
+			b_hasid3v1Tag = true;
+			parseid3v1Data();
+			retVal = SUCCESS;
+		}
+		return retVal;
 	}
 	
 	metaData* mp3File :: getMetaData()

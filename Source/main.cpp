@@ -11,6 +11,7 @@ int main(int argc, char** argv) {
 		std::cout<< "Insufficient args!"<<std::endl;
 		exit(EXIT_FAILURE);
 	}
+	std::string debugMsg;
 	std::string userOption = std::string(*(argv + 1));
 	std::string fileName = std::string(*(argv + 2));
 	
@@ -21,7 +22,7 @@ int main(int argc, char** argv) {
 	
 	
 	
-	
-	
+	debugMsg = "Goodbye!";
+	debugPrint(debugMsg);
 	return 0;
 }

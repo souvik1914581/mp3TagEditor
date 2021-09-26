@@ -22,12 +22,18 @@
 		
 		//open the file
 		openFile();
+		
+		/*get File Size*/
+		m_fileSize = getFileSize();
+		
+		debugMsg = "File Size";
+		debugPrint1(debugMsg,m_fileSize);
 	}
 	
 	mp3File :: ~mp3File()
 	{
 		delete m_metaData;
-		m_fin.close();
+		m_fileStream.close();
 		std::string debugMsg = "Dest invoked";
 		debugPrint(debugMsg);
 	}
@@ -36,8 +42,8 @@
 	{
 		/*open the file*/
 		std::string debugMsg;
-		m_fin.open(m_fileName);
-		if(!m_fin.is_open())
+		m_fileStream.open(m_fileName);
+		if(!m_fileStream.is_open())
 		{
 			debugMsg = "Unable to open file " + m_fileName;
 			fatalErrorPrint(debugMsg);
@@ -47,6 +53,19 @@
 			debugMsg = "File opened successfully!";
 			debugPrint(debugMsg);
 		}
+	}
+	
+	int mp3File :: getFileSize()
+	{
+		std::streampos fsize = 0;
+	    std::ifstream file(m_fileName, std::ios::binary );
+	
+	    fsize = file.tellg();
+	    file.seekg( 0, std::ios::end );
+	    fsize = file.tellg() - fsize;
+	    file.close();
+	
+	    return fsize;
 	}
 	
 	int mp3File :: parseMetaData()

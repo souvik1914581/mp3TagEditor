@@ -28,12 +28,14 @@ typedef class metaData{
 typedef class mp3File{
 	private:
 		std::string m_fileName;
-		std::fstream m_fin;
+		int m_fileSize;
+		std::fstream m_fileStream;
 		metaData *m_metaData;
 	public:
 		mp3File(std::string fileName);
 		~mp3File();
 		void openFile();
+		int getFileSize();
 		int parseMetaData();
 		metaData* getMetaData();
 				

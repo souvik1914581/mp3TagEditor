@@ -1,6 +1,7 @@
 #ifndef MP3TAGEDITOR_HPP
 #define MP3TAGEDITOR_HPP
 
+/*MP3 Tag Editor Classes*/
 #include <iostream>
 #include <fstream>
 typedef enum id3Version{

@@ -2,7 +2,7 @@
 #include "mp3TagEditor.h"
 	mp3File :: mp3File(std::string fileName)
 	{
-		
+		std :: string identifierString = "TAG";
 		
 		std::string debugMsg;
 		if(fileName.empty())
@@ -41,6 +41,13 @@
 		
 		debugMsg = "Bytes read = " + std::string(buff);
 		debugPrint(debugMsg);
+		
+		if(identifierString == std::string(buff))
+		{
+			b_hasid3v1Tag = true;
+			parseid3v1Data();
+		}
+		
 	}
 	
 	mp3File :: ~mp3File()
@@ -79,6 +86,26 @@
 	    file.close();
 	
 	    return fsize;
+	}
+	
+	void mp3File :: parseid3v1Data()
+	{
+		std :: string debugMsg = "Parsing id3v1.Current pos";
+		debugPrint1(debugMsg,m_fileStream.tellg());
+		m_id3v1Data = new id3v1Data;
+		
+		debugMsg = "Size of id3V1";
+		debugPrint1(debugMsg,sizeof(id3v1Data));
+		
+		char buff[128];
+		/*copy 128 bytes to id3v1 struct*/
+		m_fileStream.read(buff,128);
+		
+		memcpy(m_id3v1Data,buff,sizeof(id3v1Data));
+		
+		debugMsg = m_id3v1Data->album;
+		debugPrint(debugMsg);
+		
 	}
 	
 	int mp3File :: parseMetaData()

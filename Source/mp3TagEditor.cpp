@@ -1,5 +1,6 @@
 #include "common.h"
 #include "mp3TagEditor.h"
+#include <cstring>
 	mp3File :: mp3File(std::string fileName)
 	{
 		/*initialise members*/
@@ -55,7 +56,7 @@
 	{
 		/*open the file*/
 		std::string debugMsg;
-		m_fileStream.open(m_fileName);
+		m_fileStream.open(m_fileName, std::ios::binary | std::ios::in | std::ios::out);
 		if(!m_fileStream.is_open())
 		{
 			debugMsg = "Unable to open file " + m_fileName;
@@ -71,7 +72,7 @@
 	int mp3File :: getFileSize()
 	{
 		std::streampos fsize = 0;
-	    std::ifstream file(m_fileName, std::ios::binary );
+	    std::ifstream file(m_fileName, std::ios::binary);
 	
 	    fsize = file.tellg();
 	    file.seekg( 0, std::ios::end );
@@ -85,7 +86,8 @@
 	{
 		std :: string debugMsg = "Parsing id3v1.Current pos";
 		debugPrint1(debugMsg,m_fileStream.tellg());
-		m_id3v1Data = new id3v1Data;
+		m_id3v1Data = new id3v1Data();
+		
 		
 		debugMsg = "Size of id3V1";
 		debugPrint1(debugMsg,sizeof(id3v1Data));
@@ -96,12 +98,13 @@
 		
 		memcpy(m_id3v1Data,buff,sizeof(id3v1Data));
 		
-		debugMsg = m_id3v1Data->album;
-		debugPrint(debugMsg);
+		/*debugMsg = m_id3v1Data->album;
+		debugPrint(debugMsg);*/
 		
-		displayMetaData();
+		
 		
 	}
+	
 	void mp3File :: displayMetaData()
 	{
 		if(b_hasid3v1Tag)
@@ -113,6 +116,9 @@
 		{
 			displayid3v2Data();
 		}
+		
+		/*metadata displayed.close the filestream*/
+		m_fileStream.close();
 	}
 	
 	void mp3File :: displayid3v1Data()
@@ -144,24 +150,140 @@
 		
 		/*goto 128 bytes from end of file and read 3 bytes*/
 		m_fileStream.seekg(m_fileSize - 128,std::ios::beg);
-		
+	#if 0	
 		debugMsg = "Current pos";
 		debugPrint1(debugMsg,m_fileStream.tellg());
+	#endif
 		
-		
-		char *buff = new char[3];
+		char *buff = new char[3]();
 		m_fileStream.read(buff,3);
 		
+	#if 0	
 		debugMsg = "Bytes read = " + std::string(buff);
 		debugPrint(debugMsg);
-		
+	#endif	
 		if(identifierString == std::string(buff))
 		{
 			b_hasid3v1Tag = true;
 			parseid3v1Data();
 			retVal = SUCCESS;
 		}
+		
+		
+		delete[] buff;
 		return retVal;
+	}
+	
+	int mp3File :: editTag()
+	{
+		m_fileStream.open(m_fileName,std::ios::binary | std::ios::in |std::ios::out);
+		if(b_hasid3v1Tag)
+		{
+			return editid3v1Tag();	
+		}
+		else if(b_hasid3v2Tag)
+		{
+			return editid3v2Tag();
+		}
+		return FAILURE;
+	}
+	
+	int mp3File :: editid3v1Tag()
+	{
+		/*display the options*/
+		int choice{0};
+		std::cout<<"Choose your option:\n1.Title\n2.Artist\n3.Album\n4.Year\n";
+		std::cin>>choice;
+		std::cout<<std::endl;
+		switch(choice)
+		{
+			case 1:
+				return editTitle();
+				break;
+			case 2:
+				return editArtist();
+				break;
+			case 3:
+				return editAlbum();
+				break;
+			case 4:
+				return editYear();
+				break;
+			default:
+				std::string debugMsg = "Invalid choice!";
+				debugPrint(debugMsg);
+		}
+		return SUCCESS;
+	}
+	
+	int mp3File :: editTitle()
+	{
+		std::string debugMsg;
+		char newTitle[30] = {0};
+		std::string userInput;
+		std::cout<<"Enter new Title:";
+		
+		std::cin.clear();
+		std::cin.sync();
+		std::getline(std::cin,userInput);
+		
+		//userInput = "Spades of Ace1234567#$~123456123";
+		strncpy(newTitle,userInput.c_str(),sizeof(newTitle) - 1);
+		
+		int newTitleLength = strlen(newTitle);
+		
+		/*clear title from struct and update new title*/
+		memset(m_id3v1Data->title,0,sizeof(m_id3v1Data->title));
+		strncpy(m_id3v1Data->title,newTitle,sizeof(m_id3v1Data->title) - 1);
+		
+		if(!m_fileStream.is_open())
+		{
+			debugMsg = "File not open!";
+			fatalErrorPrint(debugMsg);
+		}
+		long  currPos = m_fileStream.tellp();
+		debugMsg = "Curr pos";
+		debugPrint1(debugMsg,currPos);
+		
+		/*goto 128 bytes from end of file. +3 to skip "TAG"*/
+		m_fileStream.seekp(m_fileSize - 128 + 3,std::ios::beg);
+		
+		currPos = m_fileStream.tellp();
+		debugMsg = "Curr pos";
+		debugPrint1(debugMsg,currPos);
+		
+		debugMsg = "updating new title ''" + std::string(m_id3v1Data->title) + "'";
+		debugPrint1(debugMsg,newTitleLength);
+		//return SUCCESS;
+		
+		/*Total 30 bytes,update new Title*/
+		 m_fileStream.write(m_id3v1Data->title,30);
+		
+		
+		
+		m_fileStream.close();
+		
+		return SUCCESS;
+	}
+	
+	int mp3File :: editArtist()
+	{
+		return SUCCESS;
+	}
+	
+	int mp3File :: editAlbum()
+	{
+		return SUCCESS;
+	}
+	
+	int mp3File :: editYear()
+	{
+		return SUCCESS;
+	}
+	
+	int mp3File :: editid3v2Tag()
+	{
+		return SUCCESS;
 	}
 	
 	metaData* mp3File :: getMetaData()

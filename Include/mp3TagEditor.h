@@ -7,7 +7,6 @@
 typedef enum id3Version{
 	ID3_INVALID = -1,
 	ID3_V1,
-	ID3_V11,
 	ID3_V12,
 	ID3_V2
 }id3Version;
@@ -46,6 +45,12 @@ typedef class mp3File{
 		bool b_hasid3v1Tag;
 		bool b_hasid3v2Tag;
 		
+		/*editing functions*/
+		int editTitle();
+		int editArtist();
+		int editAlbum();
+		int editYear();
+		
 	public:
 		mp3File(std::string fileName);
 		~mp3File();
@@ -56,7 +61,12 @@ typedef class mp3File{
 		void parseid3v1Data();
 		void displayMetaData();
 		void displayid3v1Data();
-		void displayid3v2Data();		
+		void displayid3v2Data();
+		
+		/*editing methods*/
+		int editTag();
+		int editid3v1Tag();
+		int editid3v2Tag();		
 }mp3File;
 
 #endif

@@ -11,12 +11,31 @@ int main(int argc, char** argv) {
 		std::cout<< "Insufficient args!"<<std::endl;
 		exit(EXIT_FAILURE);
 	}
+	int result{FAILURE};
 	std::string debugMsg;
 	std::string userOption = std::string(*(argv + 1));
 	std::string fileName = std::string(*(argv + 2));
 	
 	std::cout<<"Mode : "<<userOption <<"\nFileName:"<<fileName<<std::endl;
 	mp3File m_mp3File(fileName);
+	
+	/*ask if user wants to edit any tag*/
+	char choice{'N'};
+	std::cout<<"Do you want to edit any Tag (Y/N)?\n";
+	std::cin>>choice;
+	if(choice == 'Y' || choice == 'y')
+	{
+		result = m_mp3File.editTag();
+		if(FAILURE == result)
+		{
+			debugMsg = "Failed to edit Tag!";
+		}
+		else
+		{
+			debugMsg = "Tag updated successfully!";
+		}
+		debugPrint(debugMsg);
+	}
 	
 	
 	

@@ -1,17 +1,17 @@
 # Project: MP3TagEditor_v12
 # Makefile created by Dev-C++ 5.11
 
-CPP      = g++.exe
-CC       = gcc.exe
+CPP      = g++.exe -D__DEBUG__
+CC       = gcc.exe -D__DEBUG__
 WINDRES  = windres.exe
 OBJ      = ../Release/main.o ../Release/mp3TagEditor.o ../Release/common.o
 LINKOBJ  = ../Release/main.o ../Release/mp3TagEditor.o ../Release/common.o
-LIBS     = -L"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib" -L"C:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/lib" -static-libgcc
+LIBS     = -L"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib" -L"C:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/lib" -static-libgcc -g3
 INCS     = -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include" -I"C:/Users/souvi/Desktop/Code/DevC++/mp3TagEditor/Include"
 CXXINCS  = -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include" -I"C:/Program Files (x86)/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include/c++" -I"C:/Users/souvi/Desktop/Code/DevC++/mp3TagEditor/Include"
 BIN      = ../Release/MP3TagEditor_v12.exe
-CXXFLAGS = $(CXXINCS) -Wall -std=c++11
-CFLAGS   = $(INCS) -Wall
+CXXFLAGS = $(CXXINCS) -Wall -g3 -std=c++11
+CFLAGS   = $(INCS) -Wall -g3
 RM       = rm.exe -f
 
 .PHONY: all all-before all-after clean clean-custom

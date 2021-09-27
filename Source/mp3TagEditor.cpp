@@ -4,8 +4,7 @@
 	mp3File :: mp3File(std::string fileName)
 	{
 		/*initialise members*/
-		m_id3v1Data = NULL;
-		m_metaData = NULL;
+		
 		b_hasid3v1Tag = false;
 		b_hasid3v2Tag = false;
 		
@@ -45,8 +44,9 @@
 	
 	mp3File :: ~mp3File()
 	{
-		delete m_metaData;
-		delete m_id3v1Data;
+		
+		
+		delete m_id3v1;
 		m_fileStream.close();
 		std::string debugMsg = "Dest invoked";
 		debugPrint(debugMsg);
@@ -86,30 +86,22 @@
 	{
 		std :: string debugMsg = "Parsing id3v1.Current pos";
 		debugPrint1(debugMsg,m_fileStream.tellg());
-		m_id3v1Data = new id3v1Data();
 		
+		m_id3v1 = new id3v1();
+	
 		
-		debugMsg = "Size of id3V1";
-		debugPrint1(debugMsg,sizeof(id3v1Data));
-		
-		char buff[128];
+		char buff[128] = {0};
 		/*copy 128 bytes to id3v1 struct*/
 		m_fileStream.read(buff,128);
 		
-		memcpy(m_id3v1Data,buff,sizeof(id3v1Data));
-		
-		/*debugMsg = m_id3v1Data->album;
-		debugPrint(debugMsg);*/
-		
-		
-		
+		m_id3v1->updateid3Data(buff);
 	}
 	
 	void mp3File :: displayMetaData()
 	{
 		if(b_hasid3v1Tag)
 		{
-			displayid3v1Data();
+			m_id3v1->displayid3Data();
 		}
 		
 		if(b_hasid3v2Tag)
@@ -121,20 +113,7 @@
 		m_fileStream.close();
 	}
 	
-	void mp3File :: displayid3v1Data()
-	{
-		std::string debugMsg;
-		
-		debugMsg = "\nTitle: " + std::string(m_id3v1Data->title)+ "\n";
-		debugMsg += "Artist: " + std::string(m_id3v1Data->artist)+ "\n";
-		debugMsg += "Album: " + std::string(m_id3v1Data->album)+ "\n";
-		debugMsg += "Year: " + std::string(m_id3v1Data->year)+ "\n";
-		debugMsg += "Comment: " + std::string(m_id3v1Data->comment)+ "\n";
-		debugMsg += "ZeroByte: " + std::string(m_id3v1Data->zeroByte)+ "\n";
-		debugMsg += "Track: " + std::string(m_id3v1Data->track)+ "\n";
-		debugMsg += "Genre: " + std::string(m_id3v1Data->genre)+ "\n";
-		debugPrint(debugMsg);
-	}
+	
 	
 	void mp3File :: displayid3v2Data()
 	{
@@ -150,18 +129,12 @@
 		
 		/*goto 128 bytes from end of file and read 3 bytes*/
 		m_fileStream.seekg(m_fileSize - 128,std::ios::beg);
-	#if 0	
-		debugMsg = "Current pos";
-		debugPrint1(debugMsg,m_fileStream.tellg());
-	#endif
+	
 		
 		char *buff = new char[3]();
 		m_fileStream.read(buff,3);
 		
-	#if 0	
-		debugMsg = "Bytes read = " + std::string(buff);
-		debugPrint(debugMsg);
-	#endif	
+		
 		if(identifierString == std::string(buff))
 		{
 			b_hasid3v1Tag = true;
@@ -176,16 +149,19 @@
 	
 	int mp3File :: editTag()
 	{
+		int retVal = FAILURE;
 		m_fileStream.open(m_fileName,std::ios::binary | std::ios::in |std::ios::out);
 		if(b_hasid3v1Tag)
 		{
-			return editid3v1Tag();	
+			retVal =  editid3v1Tag();
+				
 		}
 		else if(b_hasid3v2Tag)
 		{
-			return editid3v2Tag();
+			retVal = editid3v2Tag();
 		}
-		return FAILURE;
+		m_fileStream.close();
+		return retVal;
 	}
 	
 	int mp3File :: editid3v1Tag()
@@ -198,81 +174,74 @@
 		
 		/*goto 128 bytes from end of file. +3 to skip "TAG"*/
 		m_fileStream.seekp(m_fileSize - 128 + 3,std::ios::beg);
-		
+	#if 0	
 		int currPos = m_fileStream.tellp();
 		std::string debugMsg = "Curr pos";
 		debugPrint1(debugMsg,currPos);
+	#endif
+		
 		/*display the options*/
 		int choice{0};
+		
+		char *buff = new char[30]();
 		std::cout<<"Choose your option:\n1.Title\n2.Artist\n3.Album\n4.Year\n";
 		std::cin>>choice;
 		std::cout<<std::endl;
+		
+		std::cout<<"Enter new value:";
+		std::string userInput = getUserInput();
+		strncpy(buff,userInput.c_str(),29);
+		id3TagId tagId = ID3_INVALID_ID;
 		switch(choice)
 		{
 			case 1:
-				return editTitle();
+				tagId = ID3_TITLE;	
 				break;
 			case 2:
-				return editArtist();
+				tagId = ID3_ARTIST;
 				break;
 			case 3:
-				return editAlbum();
+				tagId = ID3_ALBUM;
 				break;
 			case 4:
-				return editYear();
+				tagId = ID3_YEAR;
 				break;
 			default:
 				std::string debugMsg = "Invalid choice!";
 				debugPrint(debugMsg);
 		}
+		
+		m_id3v1->updateTag(tagId,buff);
+		editTagInFile(tagId,buff);
+		
 		return SUCCESS;
 	}
 	
-	int mp3File :: editTitle()
+	int mp3File :: editTagInFile(id3TagId tagId,const char *newValue)
 	{
+		int lengthTag{-1};
+		int byteOffSet{-1};
+		int filePos{-1};
 		std::string debugMsg;
-		char newTitle[30] = {0};
-		std::string userInput;
-		std::cout<<"Enter new Title:";
-		
-		userInput = getUserInput();
-		
-		
-		strncpy(newTitle,userInput.c_str(),sizeof(newTitle) - 1);
-		
-		int newTitleLength = strlen(newTitle);
-		
-		/*clear title from struct and update new title*/
-		memset(m_id3v1Data->title,0,sizeof(m_id3v1Data->title));
-		strncpy(m_id3v1Data->title,newTitle,sizeof(m_id3v1Data->title) - 1);
-		debugMsg = "updating new title ''" + std::string(m_id3v1Data->title) + "'";
-		debugPrint1(debugMsg,newTitleLength);
-		
-		
-		/*Total 30 bytes,update new Title*/
-		m_fileStream.write(m_id3v1Data->title,30);
-		m_fileStream.close();
-		if(!m_fileStream)
+		if(newValue == NULL)
 		{
-			debugMsg = "Write error!";
-			debugPrint(debugMsg);
+			return FAILURE;
 		}
 		
-		return SUCCESS;
-	}
-	
-	int mp3File :: editArtist()
-	{
-		return SUCCESS;
-	}
-	
-	int mp3File :: editAlbum()
-	{
-		return SUCCESS;
-	}
-	
-	int mp3File :: editYear()
-	{
+		lengthTag = m_id3v1->getLengthOfTag(tagId);
+		byteOffSet = m_id3v1->getTagOffSet(tagId);
+		
+		m_fileStream.seekp(byteOffSet,std::ios::cur);
+		filePos = m_fileStream.tellp();
+		debugMsg = "Editing in file..Curr Pos";
+		debugPrint1(debugMsg,filePos);
+		
+		debugMsg = "Len(Tag)";
+		debugPrint1(debugMsg,lengthTag);
+		
+		/*write to file*/
+		m_fileStream.write(newValue,lengthTag);
+		
 		return SUCCESS;
 	}
 	
@@ -281,7 +250,6 @@
 		return SUCCESS;
 	}
 	
-	metaData* mp3File :: getMetaData()
-	{
-		return NULL;
-	}
+	
+	
+	

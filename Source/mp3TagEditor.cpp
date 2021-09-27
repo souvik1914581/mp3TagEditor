@@ -190,6 +190,18 @@
 	
 	int mp3File :: editid3v1Tag()
 	{
+		if(!m_fileStream.is_open())
+		{
+			std::string debugMsg = "File not open!";
+			fatalErrorPrint(debugMsg);
+		}
+		
+		/*goto 128 bytes from end of file. +3 to skip "TAG"*/
+		m_fileStream.seekp(m_fileSize - 128 + 3,std::ios::beg);
+		
+		int currPos = m_fileStream.tellp();
+		std::string debugMsg = "Curr pos";
+		debugPrint1(debugMsg,currPos);
 		/*display the options*/
 		int choice{0};
 		std::cout<<"Choose your option:\n1.Title\n2.Artist\n3.Album\n4.Year\n";
@@ -223,11 +235,9 @@
 		std::string userInput;
 		std::cout<<"Enter new Title:";
 		
-		std::cin.clear();
-		std::cin.sync();
-		std::getline(std::cin,userInput);
+		userInput = getUserInput();
 		
-		//userInput = "Spades of Ace1234567#$~123456123";
+		
 		strncpy(newTitle,userInput.c_str(),sizeof(newTitle) - 1);
 		
 		int newTitleLength = strlen(newTitle);
@@ -235,33 +245,18 @@
 		/*clear title from struct and update new title*/
 		memset(m_id3v1Data->title,0,sizeof(m_id3v1Data->title));
 		strncpy(m_id3v1Data->title,newTitle,sizeof(m_id3v1Data->title) - 1);
-		
-		if(!m_fileStream.is_open())
-		{
-			debugMsg = "File not open!";
-			fatalErrorPrint(debugMsg);
-		}
-		long  currPos = m_fileStream.tellp();
-		debugMsg = "Curr pos";
-		debugPrint1(debugMsg,currPos);
-		
-		/*goto 128 bytes from end of file. +3 to skip "TAG"*/
-		m_fileStream.seekp(m_fileSize - 128 + 3,std::ios::beg);
-		
-		currPos = m_fileStream.tellp();
-		debugMsg = "Curr pos";
-		debugPrint1(debugMsg,currPos);
-		
 		debugMsg = "updating new title ''" + std::string(m_id3v1Data->title) + "'";
 		debugPrint1(debugMsg,newTitleLength);
-		//return SUCCESS;
+		
 		
 		/*Total 30 bytes,update new Title*/
-		 m_fileStream.write(m_id3v1Data->title,30);
-		
-		
-		
+		m_fileStream.write(m_id3v1Data->title,30);
 		m_fileStream.close();
+		if(!m_fileStream)
+		{
+			debugMsg = "Write error!";
+			debugPrint(debugMsg);
+		}
 		
 		return SUCCESS;
 	}

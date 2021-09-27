@@ -6,6 +6,7 @@
 void debugPrint(std::string &Msg);
 void debugPrint1(std::string &Msg,int retVal);
 void fatalErrorPrint(std::string &Msg);
+std::string getUserInput();
 
 
 
